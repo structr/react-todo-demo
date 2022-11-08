@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Structr React Demo</title>
+	<script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+	<script>
+		tailwind.config = {
+			theme: {
+				extend: {
+					colors: {
+						green: '#84ba39',
+						greenhover: '#97cc4d'
+					}
+				}
+			}
+		}
+	</script>	
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+	<script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+  </head>
+  <body class="p-4 bg-gray-100">
+	<h1 class="font-bold text-3xl">Todo Demo</h1>
+    <div id="root" class="mt-8 px-3 py-2 bg-white border rounded-lg shadow-lg"></div>
+    <script type="text/babel">
+    
+	class TodoDemo extends React.Component {
+
+		constructor(props) {
+			super(props);
+			this.state = {
+				todoItems: [],
+				loaded: false
+			};
+		}
+
+		componentDidMount = () => {
+			fetch('/structr/rest/Todo?_sort=createdDate')
+				.then(response => {
+						if (response.ok) {
+							return response.json();
+						} else {
+							console.error(response);
+							alert('Error: ' + response.status);
+							throw Error(response.statusText);
+						}
+					}
+				)
+				.then(json   => {
+					this.setState({
+						todoItems: json.result,
+						loaded: true
+					});
+				});
+		};
+
+		createTodo = () => {
+			this.setState({ loaded: false});
+			const newName = 'New todo created on ' + new Date().toString();
+			fetch('/structr/rest/Todo', { method: 'POST', body: JSON.stringify({ name: newName }) })
+				.then(response => {
+						if (response.ok) {
+							return response.json();
+						} else {
+							console.error(response);
+							alert('Error: ' + response.status);
+							this.setState({ loaded: true });
+							throw Error(response.statusText);
+						}
+					}
+				)
+				.then(json   => {
+					this.setState({
+						todoItems: [ ...this.state.todoItems, { id: json.result[0], type: 'Todo', name: newName } ],
+						loaded: true
+					});
+				});
+		};
+
+		deleteTodo = (id) => {
+			this.setState({ loaded: false});
+			fetch('/structr/rest/Todo/' + id, { method: 'DELETE' })
+				.then(response => {
+						if (response.ok) {
+							return response.json();
+						} else {
+							console.error(response);
+							alert('Error: ' + response.status);
+							this.setState({ loaded: true });
+							throw Error(response.statusText);
+						}
+					}
+				)
+				.then(json   => {
+					this.setState({
+						todoItems: this.state.todoItems.filter(item => item.id !== id),
+						loaded: true
+					});
+				});
+		};
+
+		toggleDone = (id, done) => {
+			this.setState({ loaded: false});
+			fetch('/structr/rest/Todo/' + id, { method: 'PUT', body: JSON.stringify({ done: !done }) })
+				.then(response => {
+						if (response.ok) {
+							return response.json();
+						} else {
+							console.error(response);
+							alert('Error: ' + response.status);
+							this.setState({ loaded: true });
+							throw Error(response.statusText);
+						}
+					}
+				)
+				.then(json   => {
+					this.setState({
+						todoItems: this.state.todoItems.map(item => item.id === id ? { ...item, done: !done } : item),
+						loaded: true
+					});
+				});
+		};
+
+		render = () => {
+			if (!this.state.loaded) {
+				return <div>Please wait until data is loaded</div>;
+			} else {
+
+				const todoItems = this.state.todoItems.map(item =>
+					<li	key={item.id}>
+							<input key={'todo-done-checkbox-' + item.id}
+									className='done-checkbox mr-4'
+									type='checkbox'
+									defaultChecked={item.done ? 'checked' : null}
+									onChange={ (e) => this.toggleDone(item.id, item.done)} >
+							</input>
+							<span key={'todo-name-' + item.id}
+									className='name'
+									onClick={ (e) => this.makeEditable(item.id) } >
+									{item.name}
+							</span>
+							<span key={'todo-delete-icon-' + item.id}
+									className='delete-item ml-2 opacity-50 hover:opacity-100 cursor-pointer'
+									onClick={ (e) => this.deleteTodo(item.id) } >
+							❌
+							</span>
+					</li>);
+				return (
+					<div>
+						<button key='create-button' onClick={ this.createTodo }	className='bg-green hover:bg-greenhover text-white rounded px-3 py-2 mt-2 mb-4'>
+							Create new todo item
+						</button>
+						<ul key='item-list'>{todoItems}</ul>
+					</div>
+				);
+			}
+		};
+
+	}
+
+	class Todo extends React.Component {
+		render() {
+			return <div>`${this.props.name}`</div>;
+		}
+	}
+
+	const root = ReactDOM.createRoot(document.getElementById('root'));
+	root.render(React.createElement(TodoDemo));
+
+    </script>
+  </body>
+</html>
