@@ -1,0 +1,7 @@
+{{
+	$.mailAddTo('sales@structr.com', 'Sales Inbox');
+	$.mailSetFrom('demo@structr.com');
+	$.mailSetSubject('New todo ' + $.this.name);
+	$.mailSetTextContent('New todo has been created at ' + new Date());
+	$.mailSend();
+}}

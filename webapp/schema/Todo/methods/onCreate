@@ -1,0 +1,4 @@
+{{
+	$.this.visibleToPublicUsers = true;
+	$.this.visibleToAuthenticatedUsers = true;
+}}
