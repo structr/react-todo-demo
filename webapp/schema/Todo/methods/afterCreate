@@ -1,7 +1,7 @@
-{{
-	$.mailAddTo('sales@structr.com', 'Sales Inbox');
-	$.mailSetFrom('demo@structr.com');
+{
+	$.mailAddTo('replace-with-the-recipient@replace-with-your-own.domain', 'Sales Inbox');
+	$.mailSetFrom('replace-with-the-sender@replace-with-your-own.domain');
 	$.mailSetSubject('New todo ' + $.this.name);
 	$.mailSetTextContent('New todo has been created at ' + new Date());
 	$.mailSend();
-}}
+}
